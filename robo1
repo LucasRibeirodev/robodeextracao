@@ -1,0 +1,81 @@
+import requests
+import pandas as pd
+from datetime import date
+from openpyxl import workbook
+import win32com.client as win32
+from xlsxwriter import workbook
+
+hoje = date.today()
+meses_dic = {1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril', 5: 'Maio', 6: 'Junho',
+             7: 'Julho', 8: 'Agosto', 9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'}
+
+dia_dic = {1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31}
+
+if hoje.day == 1:
+    x = 1
+    if hoje.month == 1 or hoje.month == 5 or hoje.month == 7 or hoje.month == 8 or hoje.month == 10 or hoje.month == 12:
+        dia = 30 + 1
+    elif hoje.month == 2 or hoje.month == 4 or hoje.month == 6 or hoje.month == 9 or hoje.month == 11:
+        dia = 31 + 1
+    else:
+        dia = 28 + 1
+else:
+    x = 0
+    dia = hoje.day
+
+anoatual = hoje.year
+if hoje.month-x < 9:
+    mesatual = f'0{hoje.month-x} - {meses_dic[hoje.month-x]}'
+else:
+    mesatual = f'{hoje.month - x} - {meses_dic[hoje.month - x]}'
+mes_ref = hoje.month-x
+if hoje.month == 1:
+    if hoje.day == 1:
+        anoatual = hoje.year-1
+        mesatual = '12 - Dezembro'
+        mes_ref = 12
+
+#links de login e local do analitico
+urlLogin = ('https://sac-dbm.ascbrazil.com.br/login/autenticar')
+urlAnaliticoBeaut = (f'https://sac-dbm.ascbrazil.com.br/relatorios-pesquisa/detalhamento/cod_pesquisa/27/dat_inicial/01-{mes_ref}-{anoatual}/dat_final/{dia-1}-{mes_ref}-{anoatual}/cod_conta/null/cod_canal/null/cod_agente/null/cod_servico/null/export-to-xls/true')
+urlAnaliticoOcrim = (f'https://sac-dbm.ascbrazil.com.br/relatorios-pesquisa/detalhamento/cod_pesquisa/28/dat_inicial/01-{mes_ref}-{anoatual}/dat_final/{dia-1}-{mes_ref}-{anoatual}/cod_conta/null/cod_canal/null/cod_agente/null/cod_servico/null/export-to-xls/true')
+urlAnaliticoDanone = (f'https://sac-dbm.ascbrazil.com.br/relatorios-pesquisa/detalhamento/cod_pesquisa/45/dat_inicial/01-{mes_ref}-{anoatual}/dat_final/{dia-1}-{mes_ref}-{anoatual}/cod_conta/null/cod_canal/null/cod_agente/null/cod_servico/null/export-to-xls/true')
+#parametros de login
+payload = {'f_nom_login': '',
+           'f_nom_senha': ''}
+
+#definindo intervalo de extração
+tipo = [2, 1] # 2 = Receptivo. 1 = Ativo
+for i in tipo:
+    intervalo = {
+            'dat_inicial': f'0{1}/{mes_ref}/{anoatual}',
+            'dat_final': f'{dia-1}/{mes_ref}/{anoatual}',
+            'bol_receptivo[]': i,
+            'export-to-xls': 1,
+        }
+
+with requests.Session() as v:
+    v.post(urlLogin, data=payload)
+    b = v.post(urlAnaliticoBeaut)
+    o = v.post(urlAnaliticoOcrim)
+    d = v.post(urlAnaliticoDanone)
+
+df_1 = pd.read_excel(b.url)
+df_2 = pd.read_excel(b.url)
+df_3 = pd.read_excel(o.url)
+df_4 = pd.read_excel(o.url)
+df_5 = pd.read_excel(d.url)
+df_6 = pd.read_excel(d.url)
+
+with pd.ExcelWriter(r'\\192.168.5.5\Operações\Extratos\2022\07 - Julho\ASC\Beautycolor Pesquisa.xlsx', engine='xlsxwriter') as writer1:
+    df_1.to_excel(writer1, sheet_name = 'Sua_duvida_ou_reclamacao_foi', index = False)
+    df_2.to_excel(writer1, sheet_name = 'Considerando_o_atendimento_q', index = False)
+
+with pd.ExcelWriter(r'\\192.168.5.5\Operações\Extratos\2022\07 - Julho\ASC\OCRIM Pesquisa.xlsx', engine='xlsxwriter') as writer2:
+    df_3.to_excel(writer2, sheet_name = 'Sua_duvida_ou_reclamacao_foi', index = False)
+    df_4.to_excel(writer2, sheet_name='Considerando_o_atendimento_q', index=False)
+
+
+with pd.ExcelWriter(r'\\192.168.5.5\Operações\Extratos\2022\07 - Julho\ASC\Danone Pesquisa.xlsx', engine='xlsxwriter') as writer3:
+    df_4.to_excel(writer3, sheet_name = 'Como_voce_avalia_a_qualidade', index = False)
+    df_6.to_excel(writer3, sheet_name='Como_voce_avalia_a_solucao_a', index=False)
