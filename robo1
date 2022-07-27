@@ -36,13 +36,13 @@ if hoje.month == 1:
         mes_ref = 12
 
 #links de login e local do analitico
-urlLogin = ('https://sac-dbm.ascbrazil.com.br/login/autenticar')
-urlAnaliticoBeaut = (f'https://sac-dbm.ascbrazil.com.br/relatorios-pesquisa/detalhamento/cod_pesquisa/27/dat_inicial/01-{mes_ref}-{anoatual}/dat_final/{dia-1}-{mes_ref}-{anoatual}/cod_conta/null/cod_canal/null/cod_agente/null/cod_servico/null/export-to-xls/true')
-urlAnaliticoOcrim = (f'https://sac-dbm.ascbrazil.com.br/relatorios-pesquisa/detalhamento/cod_pesquisa/28/dat_inicial/01-{mes_ref}-{anoatual}/dat_final/{dia-1}-{mes_ref}-{anoatual}/cod_conta/null/cod_canal/null/cod_agente/null/cod_servico/null/export-to-xls/true')
-urlAnaliticoDanone = (f'https://sac-dbm.ascbrazil.com.br/relatorios-pesquisa/detalhamento/cod_pesquisa/45/dat_inicial/01-{mes_ref}-{anoatual}/dat_final/{dia-1}-{mes_ref}-{anoatual}/cod_conta/null/cod_canal/null/cod_agente/null/cod_servico/null/export-to-xls/true')
+urlLogin = ('') #link de login
+url1 = (f'') #link de extração1
+url2 = (f'') #link de extração 2
+url3 = (f'') #link de extraçã 3
 #parametros de login
 payload = {'f_nom_login': '',
-           'f_nom_senha': ''}
+           'f_nom_senha': ''} #dados de login, usuario e senha
 
 #definindo intervalo de extração
 tipo = [2, 1] # 2 = Receptivo. 1 = Ativo
@@ -56,26 +56,27 @@ for i in tipo:
 
 with requests.Session() as v:
     v.post(urlLogin, data=payload)
-    b = v.post(urlAnaliticoBeaut)
-    o = v.post(urlAnaliticoOcrim)
-    d = v.post(urlAnaliticoDanone)
+    b = v.post(url1)
+    o = v.post(url2)
+    d = v.post(url3)
 
-df_1 = pd.read_excel(b.url)
-df_2 = pd.read_excel(b.url)
-df_3 = pd.read_excel(o.url)
-df_4 = pd.read_excel(o.url)
-df_5 = pd.read_excel(d.url)
-df_6 = pd.read_excel(d.url)
+df_1 = pd.read_excel(b.url, sheet_name= '') #definir nome de sheet em caso de mais de uma
+df_2 = pd.read_excel(b.url, sheet_name= '') #definir nome de sheet em caso de mais de uma
+df_3 = pd.read_excel(o.url, sheet_name= '') #definir nome de sheet em caso de mais de uma
+df_4 = pd.read_excel(o.url, sheet_name= '') #definir nome de sheet em caso de mais de uma
+df_5 = pd.read_excel(d.url, sheet_name= '') #definir nome de sheet em caso de mais de uma
+df_6 = pd.read_excel(d.url, sheet_name= '') #definir nome de sheet em caso de mais de uma
 
-with pd.ExcelWriter(r'\\192.168.5.5\Operações\Extratos\2022\07 - Julho\ASC\Beautycolor Pesquisa.xlsx', engine='xlsxwriter') as writer1:
-    df_1.to_excel(writer1, sheet_name = 'Sua_duvida_ou_reclamacao_foi', index = False)
-    df_2.to_excel(writer1, sheet_name = 'Considerando_o_atendimento_q', index = False)
+#definindo local de arquivo
+with pd.ExcelWriter(r'', engine='xlsxwriter') as writer1: 
+    df_1.to_excel(writer1, sheet_name = '', index = False)
+    df_2.to_excel(writer1, sheet_name = '', index = False)
 
-with pd.ExcelWriter(r'\\192.168.5.5\Operações\Extratos\2022\07 - Julho\ASC\OCRIM Pesquisa.xlsx', engine='xlsxwriter') as writer2:
-    df_3.to_excel(writer2, sheet_name = 'Sua_duvida_ou_reclamacao_foi', index = False)
-    df_4.to_excel(writer2, sheet_name='Considerando_o_atendimento_q', index=False)
+with pd.ExcelWriter(r'', engine='xlsxwriter') as writer2:
+    df_3.to_excel(writer2, sheet_name = '', index = False)
+    df_4.to_excel(writer2, sheet_name = '', index = False)
 
 
-with pd.ExcelWriter(r'\\192.168.5.5\Operações\Extratos\2022\07 - Julho\ASC\Danone Pesquisa.xlsx', engine='xlsxwriter') as writer3:
-    df_4.to_excel(writer3, sheet_name = 'Como_voce_avalia_a_qualidade', index = False)
-    df_6.to_excel(writer3, sheet_name='Como_voce_avalia_a_solucao_a', index=False)
+with pd.ExcelWriter(r'', engine='xlsxwriter') as writer3:
+    df_5.to_excel(writer3, sheet_name = '', index = False)
+    df_6.to_excel(writer3, sheet_name = '', index = False)
